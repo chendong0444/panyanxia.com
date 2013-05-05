@@ -1,0 +1,14 @@
+application: zbtg000001
+version: 4
+runtime: go
+api_version: go1
+
+
+handlers:
+
+- url: /(.*\.(css|gif|png|jpg))
+  static_files: files/\1
+  upload: files/(.*\.(css|gif|png|jpg))
+  
+- url: /.*
+  script: _go_app
