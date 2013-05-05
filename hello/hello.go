@@ -18,17 +18,12 @@ type Greeting struct {
 }
 
 func init() {
-	http.HandleFunc("/", indexHandler)
 	http.HandleFunc("/login", loginHandler)
 	http.HandleFunc("/hello", helloHandler)
 	http.HandleFunc("/root", rootHandler)
 	http.HandleFunc("/sign", signHandler)
 	http.HandleFunc("/get", getGreetingHandler)
 	http.HandleFunc("/add", addGreetingHandler)
-}
-
-func indexHandler(w http.ResponseWriter, r *http.Request) {
-	template.New("index").
 }
 
 func addGreetingHandler(w http.ResponseWriter, r *http.Request) {
