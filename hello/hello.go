@@ -10,10 +10,10 @@ import (
 	"time"
 )
 
-type Greeting struct {
+type Picture struct {
 	Author  string
 	Title   string
-	Content string
+	Url	string
 	Date    time.Time
 }
 
@@ -22,21 +22,21 @@ func init() {
 	http.HandleFunc("/hello", helloHandler)
 	http.HandleFunc("/root", rootHandler)
 	http.HandleFunc("/sign", signHandler)
-	http.HandleFunc("/get", getGreetingHandler)
-	http.HandleFunc("/add", addGreetingHandler)
+	http.HandleFunc("/get", getPicHandler)
+	http.HandleFunc("/add", addPicHandler)
 }
 
-func addGreetingHandler(w http.ResponseWriter, r *http.Request) {
+func addPicHandler(w http.ResponseWriter, r *http.Request) {
 	c := appengine.NewContext(r)
-	g := Greeting{
+	g := Picture{
 		Title:   r.FormValue("title"),
-		Content: r.FormValue("content"),
+		Url: r.FormValue("url"),
 		Date:    time.Now(),
 	}
 	if u := user.Current(c); u != nil {
 		g.Author = u.String()
 	}
-	_, err := datastore.Put(c, datastore.NewIncompleteKey(c, "Greeting", nil), &g)
+	_, err := datastore.Put(c, datastore.NewIncompleteKey(c, "Picture", nil), &g)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -44,37 +44,32 @@ func addGreetingHandler(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, "/get", http.StatusFound)
 }
 
-func getGreetingHandler(w http.ResponseWriter, r *http.Request) {
+func getPicHandler(w http.ResponseWriter, r *http.Request) {
 	c := appengine.NewContext(r)
-	q := datastore.NewQuery("Greeting").Order("-Date").Limit(10)
-	greetings := make([]Greeting, 0, 10)
-	if _, err := q.GetAll(c, &greetings); err != nil {
+	q := datastore.NewQuery("Picture").Order("-Date").Limit(10)
+	pictures := make([]Picture, 0, 10)
+	if _, err := q.GetAll(c, &pictures); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	if err := guestbookTemplate.Execute(w, greetings); err != nil {
+	if err := guestbookTemplate.Execute(w, pictures); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
 }
 
-var guestbookTemplate = template.Must(template.New("book").Parse(guestbookTemplateHTML))
+var guestbookTemplate = template.Must(template.New("picture").Parse(guestbookTemplateHTML))
 
 const guestbookTemplateHTML = `
 <html>
   <body>
     {{range .}}
-      {{with .Author}}
-        <p><b>{{.}}</b> wrote:</p>
-      {{else}}
-        <p>An anonymous person wrote:</p>
-      {{end}}
       <pre>{{.Title}}</pre>
-      <pre>{{.Content}}</pre>
+      <img src="{{.Url}}" alt="{{.Title}}" >
     {{end}}
     <form action="/add" method="post">
       <div><textarea name="title" rows="3" cols="60"></textarea></div>
-	  <div><textarea name="content" rows="3" cols="60"></textarea></div>
-      <div><input type="submit" value="Sign Guestbook"></div>
+	  <div><textarea name="url" rows="3" cols="60"></textarea></div>
+      <div><input type="submit" value="submit"></div>
     </form>
   </body>
 </html>
