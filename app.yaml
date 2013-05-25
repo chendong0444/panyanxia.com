@@ -7,8 +7,8 @@ api_version: go1
 handlers:
 
 - url: /favicon\.ico
-  static_files: favicon.ico
-  upload: favicon\.ico
+  static_files: /images/favicon.ico
+  upload: images/favicon\.ico
 
 - url: /css
   static_dir: css
@@ -18,6 +18,9 @@ handlers:
 
 - url: /images
   static_dir: images
+
+- url: /img
+  static_dir: img
 
 - url: /(.*)\.html
   static_files: \1.html
