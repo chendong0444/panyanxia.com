@@ -21,14 +21,31 @@ func init() {
 
 func addPicHandler(w http.ResponseWriter, r *http.Request) {
 	c := appengine.NewContext(r)
+	//add pic must login
+	u := user.Current(c)
+	if u == nil {
+		url, err := user.LoginURL(c, r.URL.String())
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		w.Header().Set("Location", url)
+		w.WriteHeader(http.StatusFound)
+		return
+	}
+
+	title := r.FormValue("title")
+	url := r.FormValue("url")
+	if title == "" || url == "" {
+		http.Redirect(w, r, "/get", http.StatusFound)
+	}
 	g := Picture{
-		Title: r.FormValue("title"),
-		Url:   r.FormValue("url"),
-		Date:  time.Now(),
+		Author: u.String(),
+		Title:  title,
+		Url:    url,
+		Date:   time.Now(),
 	}
-	if u := user.Current(c); u != nil {
-		g.Author = u.String()
-	}
+
 	_, err := datastore.Put(c, datastore.NewIncompleteKey(c, "Picture", nil), &g)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)

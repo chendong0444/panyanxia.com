@@ -37,11 +37,11 @@ const getPicTemplateHTML = `
 <html>
   <body>
     <form action="/add" method="post">
-      <div><label>title</label><input type="text" name="title"></div>
-	  <div><label>url</label><input type="text" name="url"></textarea></div>
+      <div><label>picture title</label><input type="text" name="title"></div>
+	  <div><label>picture url</label><input type="text" name="url"></textarea></div>
       <div><input type="submit" value="新图"></div>
     </form>
-	
+
     {{range .}}
       <p>{{.Title}}</p>
       <img src="{{.Url}}" alt="{{.Title}}" >
@@ -50,12 +50,16 @@ const getPicTemplateHTML = `
   </body>
 </html>
 `
+const PerRowPictures = 4
 
 func getPictures(w http.ResponseWriter, r *http.Request) []Picture {
 	c := appengine.NewContext(r)
-	start, err := strconv.ParseInt(r.FormValue("page"), 10, 0)
-	q := datastore.NewQuery("Picture").Order("-Date").Offset(start * 3).Limit(3)
-	pictures := make([]Picture, 0, 3)
+	page, err := strconv.ParseInt(r.FormValue("page"), 10, 0)
+	if err != nil {
+		page = 0
+	}
+	q := datastore.NewQuery("Picture").Order("-Date").Offset(int(page * PerRowPictures)).Limit(PerRowPictures)
+	pictures := make([]Picture, 0, PerRowPictures)
 	if _, err := q.GetAll(c, &pictures); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return nil
